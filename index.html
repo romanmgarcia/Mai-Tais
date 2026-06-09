@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mai Tai's — Listen & Learn</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0b1e2d;--surface:#132d42;--surface2:#1c3a52;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --foam:#eef6f2;--sand:#e2cc98;--mist:#7ab8d0;--coral:#d4604c;
+  --kelp:#39875f;--gold:#c6a440;--dim:rgba(238,246,242,0.45);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--foam);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px;
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(122,184,208,0.1) 0%,transparent 55%),
+  radial-gradient(ellipse at 80% 100%,rgba(198,164,64,0.07) 0%,transparent 50%);}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:24px;}
+.logo{font-family:'Playfair Display',serif;font-size:2rem;color:var(--sand);}
+.logo em{color:var(--mist);font-style:normal;}
+.tagline{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(122,184,208,0.5);margin-top:4px;}
+
+/* STATUS */
+.status-banner{width:100%;max-width:520px;font-size:0.75rem;text-align:center;
+  margin-bottom:10px;padding:6px 12px;border-radius:8px;display:none;}
+.status-banner.ok{background:rgba(57,135,95,0.2);color:#7de8b0;border:1px solid rgba(57,135,95,0.3);display:block;}
+.status-banner.err{background:rgba(212,96,76,0.15);color:#f5a090;border:1px solid rgba(212,96,76,0.3);display:block;}
+
+/* MODE TABS */
+.mode-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;max-width:520px;margin-bottom:14px;}
+.mode-tab{padding:9px 4px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--dim);font-size:0.72rem;font-weight:600;
+  font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.18s;text-align:center;white-space:nowrap;}
+.mode-tab.active{background:rgba(198,164,64,0.15);border-color:var(--gold);color:var(--sand);}
+
+/* NOW PLAYING */
+.now-playing{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:22px;padding:24px 22px 22px;margin-bottom:16px;text-align:center;position:relative;overflow:hidden;}
+.now-playing::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(122,184,208,0.07) 0%,transparent 70%);pointer-events:none;}
+.np-cat{font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist);margin-bottom:10px;}
+.np-name{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,4vw,1.8rem);color:var(--sand);
+  line-height:1.25;margin-bottom:14px;min-height:2.3em;display:flex;align-items:center;justify-content:center;}
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:36px;margin-bottom:14px;}
+.wb{width:4px;border-radius:3px;background:var(--mist);opacity:0.2;height:6px;transition:opacity 0.3s;}
+.waveform.playing .wb{opacity:1;}
+.waveform.playing .wb:nth-child(1){animation:wv 1.1s ease-in-out infinite 0.00s;}
+.waveform.playing .wb:nth-child(2){animation:wv 1.1s ease-in-out infinite 0.10s;}
+.waveform.playing .wb:nth-child(3){animation:wv 1.1s ease-in-out infinite 0.20s;}
+.waveform.playing .wb:nth-child(4){animation:wv 1.1s ease-in-out infinite 0.15s;}
+.waveform.playing .wb:nth-child(5){animation:wv 1.1s ease-in-out infinite 0.05s;}
+.waveform.playing .wb:nth-child(6){animation:wv 1.1s ease-in-out infinite 0.25s;}
+.waveform.playing .wb:nth-child(7){animation:wv 1.1s ease-in-out infinite 0.10s;}
+.waveform.playing .wb:nth-child(8){animation:wv 1.1s ease-in-out infinite 0.20s;}
+.waveform.playing .wb:nth-child(9){animation:wv 1.1s ease-in-out infinite 0.00s;}
+.waveform.playing .wb:nth-child(10){animation:wv 1.1s ease-in-out infinite 0.15s;}
+.waveform.playing .wb:nth-child(11){animation:wv 1.1s ease-in-out infinite 0.30s;}
+.waveform.playing .wb:nth-child(12){animation:wv 1.1s ease-in-out infinite 0.05s;}
+.waveform.loading .wb{opacity:0.6;animation:pulse 0.7s ease-in-out infinite!important;height:14px!important;}
+@keyframes wv{0%,100%{height:5px;}50%{height:30px;}}
+@keyframes pulse{0%,100%{opacity:0.2;}50%{opacity:1;}}
+.np-ings{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:14px;min-height:28px;}
+.np-ing{padding:4px 10px;border-radius:7px;font-size:0.76rem;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--dim);transition:all 0.3s;}
+.np-ing.hl{background:rgba(198,164,64,0.18);border-color:var(--gold);color:var(--sand);font-weight:600;}
+.np-status{font-size:0.7rem;color:var(--mist);min-height:16px;margin-bottom:12px;font-style:italic;}
+.np-prog{margin-bottom:18px;}
+.np-prog-track{height:3px;background:rgba(255,255,255,0.09);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.np-prog-fill{height:100%;background:linear-gradient(90deg,var(--mist),var(--gold));border-radius:2px;transition:width 0.4s;width:0%;}
+.np-prog-label{display:flex;justify-content:space-between;font-size:0.66rem;color:var(--dim);}
+.controls{display:flex;align-items:center;justify-content:center;gap:12px;}
+.cb{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.05rem;
+  transition:all 0.18s;background:rgba(255,255,255,0.08);color:var(--foam);}
+.cb:hover:not(:disabled){background:rgba(255,255,255,0.15);transform:scale(1.05);}
+.cb:disabled{opacity:0.3;cursor:not-allowed;}
+.cb.pp{width:54px;height:54px;font-size:1.25rem;background:var(--gold);color:#0b1e2d;}
+.cb.pp:hover:not(:disabled){background:#d4b454;}
+.cb.shuf-on{background:rgba(198,164,64,0.22);color:var(--gold);}
+
+/* SETTINGS */
+.settings-row{width:100%;max-width:520px;display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.sc{flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:10px 12px;}
+.sc-label{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--mist);margin-bottom:5px;}
+select,input[type=range]{width:100%;background:transparent;border:none;color:var(--foam);
+  font-family:'Inter',sans-serif;font-size:0.8rem;cursor:pointer;outline:none;accent-color:var(--gold);}
+select option{background:#132d42;}
+.sc-val{font-size:0.72rem;color:var(--sand);font-weight:700;margin-top:2px;}
+
+/* CREDITS */
+.credits-bar{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:8px 14px;margin-bottom:12px;display:flex;align-items:center;
+  justify-content:space-between;font-size:0.72rem;flex-wrap:wrap;gap:6px;}
+.cl{color:var(--dim);}
+.cv{color:var(--sand);font-weight:700;}
+
+/* VOICE DISCOVERY */
+.voice-disco{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:14px;margin-bottom:12px;display:none;}
+.voice-disco.open{display:block;}
+.vd-header{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--mist);
+  font-weight:600;margin-bottom:10px;}
+.vi{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;
+  border:1px solid transparent;margin-bottom:5px;}
+.vi.sel{background:rgba(198,164,64,0.1);border-color:rgba(198,164,64,0.35);}
+.vi-info{flex:1;min-width:0;}
+.vi-name{font-weight:600;font-size:0.83rem;color:var(--foam);}
+.vi-meta{font-size:0.68rem;color:var(--dim);margin-top:1px;}
+.vi-id{font-size:0.58rem;color:rgba(255,255,255,0.18);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vbtn{border-radius:6px;padding:5px 10px;font-size:0.7rem;font-weight:600;
+  cursor:pointer;font-family:'Inter',sans-serif;border:none;flex-shrink:0;}
+.vbtn-prev{background:rgba(255,255,255,0.08);color:var(--foam);}
+.vbtn-use{background:var(--gold);color:#0b1e2d;}
+.vd-loading{font-size:0.78rem;color:var(--dim);text-align:center;padding:14px;}
+.btn-find{background:rgba(122,184,208,0.12);border:1px solid rgba(122,184,208,0.35);color:var(--mist);
+  border-radius:8px;padding:7px 14px;font-size:0.72rem;font-weight:600;font-family:'Inter',sans-serif;
+  cursor:pointer;width:100%;margin-top:6px;}
+.btn-find:hover{background:rgba(122,184,208,0.22);}
+
+/* QUEUE */
+.queue-info{font-size:0.7rem;color:var(--dim);text-align:center;width:100%;max-width:520px;margin-bottom:6px;}
+.playlist-wrap{width:100%;max-width:520px;}
+.pl-sec{margin-bottom:6px;}
+.pl-sec-lbl{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--mist);padding:8px 4px 5px;font-weight:600;}
+.pl-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;
+  border:1px solid transparent;cursor:pointer;transition:all 0.14s;margin-bottom:3px;}
+.pl-item:hover{background:rgba(255,255,255,0.04);border-color:var(--border);}
+.pl-item.playing{background:rgba(122,184,208,0.07);border-color:rgba(122,184,208,0.28);}
+.pl-num{font-size:0.7rem;color:var(--dim);min-width:20px;text-align:right;}
+.pl-info{flex:1;}
+.pl-name{font-size:0.84rem;font-weight:500;}
+.pl-meta{font-size:0.68rem;color:var(--dim);margin-top:1px;}
+.pl-done{font-size:0.78rem;min-width:18px;text-align:center;color:var(--kelp);}
+.cached-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--kelp);margin-left:5px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Mai Tai<em>'s</em></div>
+  </div>
+
+<div class="status-banner" id="statusBanner"></div>
+
+<div class="mode-tabs">
+  <button class="mode-tab active" onclick="setMode('all')">All</button>
+  <button class="mode-tab" onclick="setMode('cocktails')">Cocktails</button>
+  <button class="mode-tab" onclick="setMode('shots')">Shots</button>
+  <button class="mode-tab" onclick="setMode('beers')">Beers</button>
+</div>
+
+<div class="now-playing">
+  <div class="np-cat" id="npCat"></div>
+  <div class="np-name" id="npName"></div>
+  <div class="waveform" id="waveform">
+    <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+    <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+    <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+    <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+  </div>
+  <div class="np-ings" id="npIngs"></div>
+  <div class="np-status" id="npStatus"></div>
+  <div class="np-prog">
+    <div class="np-prog-track"><div class="np-prog-fill" id="npFill"></div></div>
+    <div class="np-prog-label"><span id="npCur">-</span><span id="npTot">-</span></div>
+  </div>
+  <div class="controls">
+    <button class="cb" onclick="prevItem()">&#9198;</button>
+    <button class="cb" onclick="repeatItem()">&#8635;</button>
+    <button class="cb pp" id="btnPlay" onclick="togglePlay()" disabled>&#9654;</button>
+    <button class="cb" onclick="nextItem()">&#9197;</button>
+    <button class="cb" id="btnShuf" onclick="toggleShuffle()">&#8644;</button>
+  </div>
+</div>
+
+<div class="settings-row">
+  <div class="sc" style="flex:2;min-width:160px;">
+    <div class="sc-label">Voice</div>
+    <select id="voiceSelect" onchange="onVoiceChange()">
+      <optgroup label="Female">
+        <option value="hpp4J3VqNfWAUOO0d1Us">Bella</option>
+        <option value="EXAVITQu4vr4xnSDxMaL">Sarah</option>
+        <option value="FGY2WhTYpPnrIDTdsKH5">Laura</option>
+        <option value="SAz9YHcvj6GT2YYXdXww">River</option>
+        <option value="Xb7hH8MSUJpSbSDYk0k2">Alice</option>
+        <option value="XrExE9yKIg1WjnnlVkGX">Matilda</option>
+        <option value="cgSgspJ2msm6clMCkdW9">Jessica</option>
+        <option value="pFZP5JQG7iQjIQuC4Bku">Lily</option>
+      </optgroup>
+      <optgroup label="Male">
+        <option value="CwhRBWXzGAHq8TQ4Fs17">Roger</option>
+        <option value="IKne3meq5aSn9XLyUdCD">Charlie</option>
+        <option value="JBFqnCBsd6RMkjVDRZzb">George</option>
+        <option value="N2lVS1w4EtoT3dr4eOWO">Callum</option>
+        <option value="SOYHLrjzK2X1ezoPC6cr">Harry</option>
+        <option value="TX3LPaxmHKxFdv7VOQHJ">Liam</option>
+        <option value="bIHbv24MWmeRgasZH58o">Will</option>
+        <option value="cjVigY5qzO86Huf0OWal">Eric</option>
+        <option value="iP95p4xoKVk53GoZ742B">Chris</option>
+        <option value="nPczCjzI2devNBz1zQrb">Brian</option>
+        <option value="onwK4e9ZLuTAKqWW03F9">Daniel</option>
+        <option value="pNInz6obpgDQGcFmaJgB">Adam</option>
+        <option value="pqHfZKP75CvOlQylNhV4">Bill</option>
+      </optgroup>
+    </select>
+    <button class="btn-find" onclick="findMyVoices()">Browse Voices</button>
+  </div>
+  <div class="sc">
+    <div class="sc-label">Speed</div>
+    <input type="range" id="speedRange" min="0.7" max="1.2" step="0.05" value="0.9"
+      oninput="document.getElementById('speedVal').textContent=parseFloat(this.value).toFixed(2)+'x'">
+    <div class="sc-val" id="speedVal">0.90x</div>
+  </div>
+  <div class="sc">
+    <div class="sc-label">Pause (s)</div>
+    <input type="range" id="pauseRange" min="0.5" max="5" step="0.5" value="2"
+      oninput="document.getElementById('pauseVal').textContent=this.value+'s'">
+    <div class="sc-val" id="pauseVal">2s</div>
+  </div>
+</div>
+
+<div class="credits-bar">
+  <span class="cl">Chars used:</span><span class="cv" id="charsUsed">0</span>
+  <span class="cl">Cached:</span><span class="cv" id="cachedCount">0</span>
+</div>
+
+<div class="voice-disco" id="voiceDisco">
+  <div class="vd-header" onclick="toggleDisco()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;">
+    <span>Voices</span>
+    <span id="discoArrow" style="font-size:0.8rem;margin-left:10px;transition:transform 0.2s;">&#9650;</span>
+  </div>
+  <div id="voiceDiscoList"><div class="vd-loading">Loading...</div></div>
+</div>
+
+<audio id="player" preload="auto"></audio>
+
+<div class="queue-info" id="queueInfo"></div>
+<div class="playlist-wrap"><div id="playlistEl"></div></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+var R=function(a){return a[Math.floor(Math.random()*a.length)];};
+
+var INTROS=[
+  function(n){return n+'.';}
+];
+var LEADS=['For this one you need','Ingredients are','This one calls for','You need'];
+var LASTS=['and finally','and last,','and to finish,'];
+var HEROES=[
+  function(i){return 'The key ingredient here is '+i+'. Do not forget that one.';},
+  function(i){return 'What makes this unique is the '+i+'.';},
+  function(i){return 'Lock this in: your anchor is the '+i+'.';}
+];
+var FLOATS=[
+  function(f){return 'Float the '+f+' on top to finish.';},
+  function(f){return 'Top it off with a '+f+' float.';}
+];
+var BINTROS=[
+  function(n){return n+'.';}
+];
+var BPRICE=[
+  function(r,p){return 'Regular is '+r+(p?', '+p+' pitcher.':'.');},
+  function(r,p){return 'That is '+r+' a glass'+(p?', pitcher is '+p+'.':'.');}
+];
+var BHH=[
+  function(h,hp){return 'Happy hour: '+h+(hp?', or '+hp+' pitcher.':'.');},
+  function(h,hp){return 'On happy hour: '+h+(hp?', pitcher '+hp+'.'+'.':".");}
+];
+var BNO=['No happy hour on this one.','Full price only.'];
+
+function buildScript(item){
+  if(item.isBeer){
+    return R(BINTROS)(item.name)+' '+R(BPRICE)(item.reg16,item.regP)+' '+(item.hh16?R(BHH)(item.hh16,item.hhP):R(BNO));
+  }
+  var floats=item.ingredients.filter(function(i){return i.toLowerCase().indexOf('float')!==-1;});
+  var mains=item.ingredients.filter(function(i){return i.toLowerCase().indexOf('float')===-1;});
+  var s=R(INTROS)(item.name)+' '+R(LEADS)+' ';
+  if(mains.length===1){s+=mains[0]+'. ';}
+  else{s+=mains.slice(0,-1).join(', ')+', '+R(LASTS)+' '+mains[mains.length-1]+'. ';}
+  floats.forEach(function(f){s+=R(FLOATS)(f.replace(/float[:\s]*/i,'').trim())+' ';});
+  if(item.hero&&Math.random()<0.65){s+=R(HEROES)(item.hero.replace(/float[:\s]*/i,'').trim())+' ';}
+  return s.trim();
+}
+
+var ALL=[
+  {name:'Don Julio Guava Margarita',cat:'Specialty Cocktails',hero:'Guava puree',ingredients:['Don Julio tequila','Cointreau','Lime juice','Guava puree','Sweet sour']},
+  {name:'Illegal Strawberry Mule',cat:'Specialty Cocktails',hero:'Strawberry puree',ingredients:['Illegal mezcal tequila','Lime juice','Strawberry puree','Ginger beer']},
+  {name:'Mango Mojito',cat:'Specialty Cocktails',hero:'Mango puree',ingredients:['Cruzan Mango Rum','Monin Mint Syrup','Lime juice','Mango puree','Club soda','Mint leaves']},
+  {name:'Lilikoi Mojito',cat:'Specialty Cocktails',hero:'Razzmatazz',ingredients:['Cruzan Passion rum','Razzmatazz','Monin mint syrup','Lime juice','Club soda','Mint leaves']},
+  {name:'Red Bull Starfish',cat:'Specialty Cocktails',hero:'Red Bull',ingredients:['Cruzan Mango rum','Watermelon Pucker','Peach Schnapps','Red Bull']},
+  {name:'Frozen Peach',cat:'Specialty Cocktails',hero:'Real Peach Puree',ingredients:['Stoli Vodka','DeKuyper Peachtree Schnapps','Real Peach Puree','Martini Rossi']},
+  {name:'Cucumber Spritz',cat:'Specialty Cocktails',hero:'Cucumbers',ingredients:['Prairie Vodka','Lime Juice','Club soda','Cucumbers']},
+  {name:'Lychee Margarita',cat:'Specialty Cocktails',hero:'Real Lychee Syrup',ingredients:['Herradura Silver Tequila','Real Lychee Syrup','Fresh Lime Juice','Sweet and Sour']},
+  {name:'Top Shelf Margarita',cat:'Specialty Cocktails',hero:'Grand Marnier',ingredients:['Patron silver','Cointreau','Sweet n Sour','Lime juice','Orange juice','Float: Grand Marnier']},
+  {name:'Bulliet Old Fashion',cat:'Specialty Cocktails',hero:'Bitters',ingredients:['Bulliet Whiskey','Simple Syrup','Bitters','Club soda']},
+  {name:'Mango Chile Slush',cat:'Specialty Cocktails',hero:'Chile mango rum',ingredients:['Chile mango rum','Mango puree','Lime juice','Sweet sour']},
+  {name:'The Slushie',cat:'Specialty Cocktails',hero:'Orgeat',ingredients:['Bacardi Gold Rum','Mahina Dark Rum','Mai Tai Mix','Orgeat']},
+  {name:'Original MT',cat:'Specialty Cocktails',hero:'Whalers Dark rum',ingredients:['Bacardi Gold rum','Orange Curacao','Orgeat Syrup','Mai Tai Juice Mix','Float: Whalers Dark rum']},
+  {name:'MAKAI TAI',cat:'Specialty Cocktails',hero:'Blue curacao',ingredients:['Cruzan coconut rum','Mahina Silver rum','Blue curacao','Pineapple Juice','Club soda','Float: Whalers Dark rum']},
+  {name:'Watermelon Mai Tai',cat:'Specialty Cocktails',hero:'Midori',ingredients:['Grey Goose essence','Watermelon Pucker','Mai Tai Juice Mix','Club Soda','Float: Midori']},
+  {name:'Mahina Tai',cat:'Specialty Cocktails',hero:'POG juice',ingredients:['Mahina coconut Rum','Mahina Silver Rum','Orgeat Syrup','Orange Curacao','POG juice','Float: Mahina Dark']},
+  {name:'Mango Sunrise',cat:'Specialty Cocktails',hero:'Captain Spice',ingredients:['Cruzan Mango Rum','Orange Curacao','Mai Tai Mix','Float: Captain Spice']},
+  {name:'Lychee Sunset',cat:'Specialty Cocktails',hero:'Cranberry Juice',ingredients:['Cruzan Mango Rum','Cruzan Pineapple Rum','Sweet and Sour','Pineapple Juice','Float: Cranberry Juice']},
+  {name:"I'm Lit",cat:'Specialty Cocktails',hero:'St. Germaine',ingredients:['Patron Silver','St. Germaine','Lime Juice','Agave','Club Soda']},
+  {name:'Molokai Mule',cat:'Specialty Cocktails',hero:'Ginger Beer',ingredients:["Tito's vodka",'Lime juice','Ginger Beer']},
+  {name:'Green Tea Shot',cat:'Shots',hero:'Jameson',ingredients:['Jameson','Peach Schnapps','Sweet n sour']},
+  {name:'Strawberry Lime Twist',cat:'Shots',hero:'Bacardi Lime',ingredients:['Bacardi Lime','Lime juice','Strawberry puree']},
+  {name:'Blue Razz Shot',cat:'Shots',hero:'UV Blue Raspberry Vodka',ingredients:['UV Blue Raspberry Vodka','Lime juice','Lemon juice','Soda']},
+  {name:'Skinny Watermelon',cat:'Shots',hero:'Watermelon Red Bull',ingredients:['Bacardi silver','Lime juice','Sugar free watermelon Red Bull']},
+  {name:'Kiss My Mango',cat:'Shots',hero:'Ciroc Mango',ingredients:['Ciroc Mango','Lemon juice','Lime juice','Orange juice']},
+  {name:'Patron Anejo Watermelon',cat:'Shots',hero:'Patron Anejo',ingredients:['Patron Anejo','Lemon juice','Watermelon puree']},
+  {name:'Kona Longboard Lager',cat:'Craft / Local Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Kona Big Wave Golden Ale',cat:'Craft / Local Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Aloha Blonde',cat:'Craft / Local Draft',isBeer:true,reg16:'nine fifty',regP:'twenty one fifty',hh16:null,hhP:null,d16:'$9.50',dP:'$21.50',dh16:null,dhP:null},
+  {name:'Aloha Red Zeppelin IPA',cat:'Craft / Local Draft',isBeer:true,reg16:'nine fifty',regP:'twenty one fifty',hh16:null,hhP:null,d16:'$9.50',dP:'$21.50',dh16:null,dhP:null},
+  {name:'Bud Light draft',cat:'Domestic Draft',isBeer:true,reg16:'seven dollars',regP:'sixteen dollars',hh16:'five dollars',hhP:'thirteen fifty',d16:'$7.00',dP:'$16.00',dh16:'$5.00',dhP:'$13.50'},
+  {name:'Coors Light draft',cat:'Domestic Draft',isBeer:true,reg16:'seven dollars',regP:'sixteen dollars',hh16:'five dollars',hhP:'fourteen dollars',d16:'$7.00',dP:'$16.00',dh16:'$5.00',dhP:'$14.00'},
+  {name:'Miller Lite draft',cat:'Domestic Draft',isBeer:true,reg16:'seven dollars',regP:'sixteen dollars',hh16:'five dollars',hhP:'fourteen dollars',d16:'$7.00',dP:'$16.00',dh16:'$5.00',dhP:'$14.00'},
+  {name:'Michelob Ultra draft',cat:'Domestic Draft',isBeer:true,reg16:'eight dollars',regP:'eighteen dollars',hh16:'six dollars',hhP:'sixteen dollars',d16:'$8.00',dP:'$18.00',dh16:'$6.00',dhP:'$16.00',d16:'$8.00',dP:'$18.00',dh16:'$6.00',dhP:'$16.00'},
+  {name:'Sierra Nevada draft',cat:'Domestic Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:null,hhP:null,d16:'$9.00',dP:'$19.00',dh16:null,dhP:null},
+  {name:'Truly Wild Berry Draft',cat:'Domestic Draft',isBeer:true,reg16:'ten dollars',regP:'flat bottle twelve',hh16:null,hhP:null,d16:'$10.00',dP:'FB $12',dh16:null,dhP:null},
+  {name:'Kirin',cat:'Import Draft',isBeer:true,reg16:'eight dollars',regP:'eighteen dollars',hh16:'six dollars',hhP:'sixteen dollars',d16:'$8.00',dP:'$18.00',dh16:'$6.00',dhP:'$16.00',d16:'$8.00',dP:'$18.00',dh16:'$6.00',dhP:'$16.00'},
+  {name:'Stella Artois',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Dos Equis Lager',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Blue Moon',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Modelo Especial',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Pacifico',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Heineken draft',cat:'Import Draft',isBeer:true,reg16:'nine dollars',regP:'nineteen dollars',hh16:'seven dollars',hhP:'seventeen dollars',d16:'$9.00',dP:'$19.00',dh16:'$7.00',dhP:'$17.00'},
+  {name:'Bud Light bottle',cat:'Bottle / Can',isBeer:true,reg16:'seven fifty',regP:null,hh16:'five fifty',hhP:null,d16:'$7.50',dP:null,dh16:'$5.50',dhP:null},
+  {name:'Budweiser bottle',cat:'Bottle / Can',isBeer:true,reg16:'seven fifty',regP:null,hh16:'five fifty',hhP:null,d16:'$7.50',dP:null,dh16:'$5.50',dhP:null},
+  {name:'Miller Lite bottle',cat:'Bottle / Can',isBeer:true,reg16:'seven fifty',regP:null,hh16:'five fifty',hhP:null,d16:'$7.50',dP:null,dh16:'$5.50',dhP:null},
+  {name:'Michelob Ultra bottle',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:'six fifty',hhP:null,d16:'$8.50',dP:null,dh16:'$6.50',dhP:null},
+  {name:'Heineken twelve ounce',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:'six fifty',hhP:null,d16:'$8.50',dP:null,dh16:'$6.50',dhP:null},
+  {name:'Heineken Light',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:'six fifty',hhP:null,d16:'$8.50',dP:null,dh16:'$6.50',dhP:null},
+  {name:'Heineken Silver',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:'six fifty',hhP:null,d16:'$8.50',dP:null,dh16:'$6.50',dhP:null},
+  {name:'Heineken zero zero',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:'six fifty',hhP:null,d16:'$8.50',dP:null,dh16:'$6.50',dhP:null},
+  {name:'Corona',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:null,hhP:null,d16:'$8.50',dP:null,dh16:null,dhP:null},
+  {name:'Guinness',cat:'Bottle / Can',isBeer:true,reg16:'eight fifty',regP:null,hh16:null,hhP:null,d16:'$8.50',dP:null,dh16:null,dhP:null},
+  {name:'Nutrl Seltzer',cat:'Bottle / Can',isBeer:true,reg16:'eight dollars',regP:null,hh16:null,hhP:null,d16:'$8.00',dP:null,dh16:null,dhP:null},
+  {name:'Truly Seltzer',cat:'Bottle / Can',isBeer:true,reg16:'eight dollars',regP:null,hh16:null,hhP:null,d16:'$8.00',dP:null,dh16:null,dhP:null}
+];
+
+// ── STATE ─────────────────────────────────────────────
+var API_KEY = 'sk_e8a4779b6339cd2a13f5cc13900402ace2e95c729480916b';
+var voiceId = 'hpp4J3VqNfWAUOO0d1Us'; // Bella default
+var shuffleMode = false;
+var isPlaying = false;
+var currentIndex = 0;
+var queue = [];
+var currentMode = 'all';
+var currentAudio = null;
+var pauseTimer = null;
+var doneSet = new Set();
+var audioCache = {};
+var charsUsed = 0;
+var previewAudio = null;
+
+// ── INIT ──────────────────────────────────────────────
+(function init(){
+  // Check localStorage for a saved voice preference
+  try {
+    var savedVoice = localStorage.getItem('mt_voice');
+    if(savedVoice){ voiceId = savedVoice; }
+  } catch(e){}
+  document.getElementById('btnPlay').disabled = false;
+  
+  queue = buildQueue('all');
+  renderPlaylist();
+  updateNP();
+  document.getElementById('queueInfo').textContent = queue.length + ' items  In order';
+})();
+
+// ── HELPERS ───────────────────────────────────────────
+function setBanner(msg, type){
+  var el = document.getElementById('statusBanner');
+  el.textContent = msg;
+  el.className = 'status-banner ' + type;
+}
+function setStatus(msg){ document.getElementById('npStatus').textContent = msg; }
+function buildQueue(mode){
+  var base;
+  if(mode==='cocktails') base=ALL.filter(function(r){return r.cat==='Specialty Cocktails';});
+  else if(mode==='shots') base=ALL.filter(function(r){return r.cat==='Shots';});
+  else if(mode==='beers') base=ALL.filter(function(r){return r.isBeer;});
+  else base=ALL.slice();
+  return shuffleMode ? shuffle(base) : base;
+}
+function shuffle(a){
+  var b=a.slice();
+  for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}
+  return b;
+}
+function cacheKey(item){ return voiceId+'::'+item.name; }
+
+// ── ELEVENLABS FETCH ──────────────────────────────────
+async function fetchAudio(item){
+  var ck = cacheKey(item);
+  if(audioCache[ck]) return audioCache[ck];
+
+  var script = buildScript(item);
+  charsUsed += script.length;
+  document.getElementById('charsUsed').textContent = charsUsed;
+  setStatus('Generating audio...');
+  document.getElementById('waveform').classList.add('loading');
+
+  try {
+    var resp = await fetch(
+      'https://api.elevenlabs.io/v1/text-to-speech/' + voiceId + '?output_format=mp3_44100_128',
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key': API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: script,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: { stability: 0.5, similarity_boost: 0.8, style: 0.0, use_speaker_boost: true }
+        })
+      }
+    );
+
+    document.getElementById('waveform').classList.remove('loading');
+
+    if(!resp.ok){
+      var errText = await resp.text().catch(function(){ return ''; });
+      var errMsg = '';
+      try { errMsg = JSON.parse(errText).detail.message || JSON.parse(errText).detail; } catch(e){ errMsg = resp.status + ' ' + resp.statusText; }
+      setStatus('Error: ' + errMsg);
+      if(resp.status===401||resp.status===403) setBanner('API key error. Check your ElevenLabs key.','err');
+      if(resp.status===422) setBanner('Voice not available on free tier. Use Find My Free Voices to pick one.','err');
+      if(resp.status===429) setBanner('Rate limit hit. Wait a moment and try again.','err');
+      return null;
+    }
+
+    var arrayBuf = await resp.arrayBuffer();
+    if(!arrayBuf || arrayBuf.byteLength === 0){ setStatus('Empty audio response.'); return null; }
+
+    // Base64 data URL for iOS Safari compatibility
+    var bytes = new Uint8Array(arrayBuf);
+    var binary = '';
+    var chunk = 8192;
+    for(var i=0; i<bytes.byteLength; i+=chunk){
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+    }
+    var dataUrl = 'data:audio/mpeg;base64,' + btoa(binary);
+    audioCache[ck] = dataUrl;
+    document.getElementById('cachedCount').textContent = Object.keys(audioCache).length;
+    return dataUrl;
+
+  } catch(e) {
+    document.getElementById('waveform').classList.remove('loading');
+    setStatus('Network error: ' + e.message);
+    return null;
+  }
+}
+
+// ── PLAYBACK ──────────────────────────────────────────
+function togglePlay(){ isPlaying ? pause() : startPlay(); }
+
+async function startPlay(){
+  isPlaying = true;
+  document.getElementById('btnPlay').innerHTML = '&#9646;&#9646;';
+  await playCurrent();
+}
+
+function pause(){
+  isPlaying = false;
+  if(currentAudio){ currentAudio.pause(); }
+  if(pauseTimer){ clearTimeout(pauseTimer); pauseTimer = null; }
+  document.getElementById('btnPlay').innerHTML = '&#9654;';
+  document.getElementById('waveform').classList.remove('playing');
+  setStatus('');
+}
+
+function stop(){
+  isPlaying = false;
+  if(currentAudio){ currentAudio.pause(); currentAudio.onended = null; currentAudio.onerror = null; currentAudio = null; }
+  if(pauseTimer){ clearTimeout(pauseTimer); pauseTimer = null; }
+  document.getElementById('btnPlay').innerHTML = '&#9654;';
+  document.getElementById('waveform').classList.remove('playing');
+  document.getElementById('waveform').classList.remove('loading');
+}
+
+async function playCurrent(){
+  if(!isPlaying || currentIndex >= queue.length){
+    if(currentIndex >= queue.length){
+      isPlaying = false;
+      document.getElementById('btnPlay').innerHTML = '&#9654;';
+      document.getElementById('waveform').classList.remove('playing');
+      document.getElementById('npName').textContent = '';
+      setStatus('');
+    }
+    return;
+  }
+
+  var item = queue[currentIndex];
+  updateNP(); highlightPlaylist();
+  var url = await fetchAudio(item);
+  if(!url || !isPlaying) return;
+
+  setStatus('Playing' + (audioCache[cacheKey(item)] ? ' (cached)' : '') + '...');
+  document.getElementById('waveform').classList.add('playing');
+
+  currentAudio = document.getElementById('player');
+  currentAudio.pause();
+  currentAudio.onended = null;
+  currentAudio.onerror = null;
+  currentAudio.src = url;
+  currentAudio.load();
+
+  currentAudio.onended = function(){
+    if(!isPlaying) return;
+    document.getElementById('waveform').classList.remove('playing');
+    doneSet.add(currentIndex);
+    renderPlaylist();
+    setStatus('');
+    pauseTimer = setTimeout(function(){
+      if(!isPlaying) return;
+      currentIndex++;
+      playCurrent();
+    }, parseFloat(document.getElementById('pauseRange').value) * 1000);
+  };
+
+  currentAudio.onerror = function(){
+    if(!isPlaying) return;
+    setStatus('');
+    pauseTimer = setTimeout(function(){
+      if(!isPlaying) return;
+      currentIndex++;
+      playCurrent();
+    }, parseFloat(document.getElementById('pauseRange').value) * 1000);
+  };
+
+  var playPromise = currentAudio.play();
+  if(playPromise !== undefined){
+    playPromise.catch(function(e){
+      setStatus('Tap play to continue.');
+      document.getElementById('waveform').classList.remove('playing');
+      document.getElementById('btnPlay').innerHTML = '&#9654;';
+      isPlaying = false;
+    });
+  }
+}
+
+async function nextItem(){ stop(); currentIndex=Math.min(currentIndex+1,queue.length-1); updateNP(); highlightPlaylist(); isPlaying=true; document.getElementById('btnPlay').innerHTML='&#9646;&#9646;'; await playCurrent(); }
+async function prevItem(){ stop(); currentIndex=Math.max(currentIndex-1,0); updateNP(); highlightPlaylist(); isPlaying=true; document.getElementById('btnPlay').innerHTML='&#9646;&#9646;'; await playCurrent(); }
+async function repeatItem(){ stop(); updateNP(); highlightPlaylist(); isPlaying=true; document.getElementById('btnPlay').innerHTML='&#9646;&#9646;'; await playCurrent(); }
+async function jumpTo(idx){ stop(); currentIndex=idx; updateNP(); highlightPlaylist(); isPlaying=true; document.getElementById('btnPlay').innerHTML='&#9646;&#9646;'; await playCurrent(); }
+
+function toggleShuffle(){
+  shuffleMode = !shuffleMode;
+  document.getElementById('btnShuf').classList.toggle('shuf-on', shuffleMode);
+  stop(); currentIndex=0; doneSet.clear();
+  queue=buildQueue(currentMode); renderPlaylist(); updateNP();
+  document.getElementById('queueInfo').textContent = queue.length + ' items  ' + (shuffleMode?'Shuffled':'In order');
+}
+
+function setMode(mode){
+  currentMode = mode;
+  var modes=['all','cocktails','shots','beers'];
+  document.querySelectorAll('.mode-tab').forEach(function(t,i){ t.classList.toggle('active', modes[i]===mode); });
+  stop(); currentIndex=0; doneSet.clear();
+  queue=buildQueue(mode); renderPlaylist(); updateNP();
+  document.getElementById('queueInfo').textContent = queue.length + ' items  ' + (shuffleMode?'Shuffled':'In order');
+}
+
+function onVoiceChange(){
+  voiceId = document.getElementById('voiceSelect').value;
+  try{ localStorage.setItem('mt_voice', voiceId); } catch(e){}
+  Object.keys(audioCache).forEach(function(k){ audioCache[k]=null; });
+  audioCache = {};
+  document.getElementById('cachedCount').textContent = '0';
+  setStatus('');
+}
+
+// ── UI UPDATES ────────────────────────────────────────
+function updateNP(){
+  var item = queue[currentIndex];
+  if(!item) return;
+  document.getElementById('npCat').textContent = item.cat;
+  document.getElementById('npName').textContent = item.name;
+  document.getElementById('npCur').textContent = currentIndex + 1;
+  document.getElementById('npTot').textContent = queue.length;
+  var pct = queue.length > 1 ? (currentIndex / (queue.length-1)) * 100 : 0;
+  document.getElementById('npFill').style.width = pct + '%';
+  var ings = document.getElementById('npIngs');
+  if(item.isBeer){
+    ings.innerHTML =
+      '<span class="np-ing hl">' + item.d16 + '</span>' +
+      (item.dP ? '<span class="np-ing">' + item.dP + ' pitcher</span>' : '') +
+      (item.dh16 ? '<span class="np-ing">' + item.dh16 + ' HH</span>' : '<span class="np-ing" style="color:var(--coral)">No HH</span>');
+  } else {
+    ings.innerHTML = item.ingredients.map(function(ing){
+      return '<span class="np-ing' + (ing===item.hero?' hl':'') + '">' + ing + '</span>';
+    }).join('');
+  }
+}
+
+function highlightPlaylist(){
+  document.querySelectorAll('.pl-item').forEach(function(el){
+    el.classList.toggle('playing', parseInt(el.dataset.idx)===currentIndex);
+  });
+}
+
+function renderPlaylist(){
+  var el = document.getElementById('playlistEl');
+  var cats = [];
+  queue.forEach(function(r){ if(cats.indexOf(r.cat)===-1) cats.push(r.cat); });
+  el.innerHTML = cats.map(function(cat){
+    var items = [];
+    queue.forEach(function(r,gi){ if(r.cat===cat) items.push({r:r,gi:gi}); });
+    return '<div class="pl-sec"><div class="pl-sec-lbl">' + cat + '</div>' +
+      items.map(function(x){
+        var cached = audioCache[cacheKey(x.r)] ? '<span class="cached-dot"></span>' : '';
+        var meta = x.r.isBeer ? x.r.d16 + (x.r.dh16 ? ' / ' + x.r.dh16 + ' HH' : ' / no HH') : '';
+        return '<div class="pl-item' + (x.gi===currentIndex?' playing':'') + '" data-idx="' + x.gi + '" ' +
+          'ontouchstart="plTouchStart(event)" ontouchend="plTouchEnd(event,' + x.gi + ')" onclick="plClick(event,' + x.gi + ')">' +
+          '<div class="pl-num">' + (x.gi+1) + '</div>' +
+          '<div class="pl-info"><div class="pl-name">' + x.r.name + cached + '</div><div class="pl-meta">' + meta + '</div></div>' +
+          '<div class="pl-done">' + (doneSet.has(x.gi) ? '&#10003;' : '') + '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+  }).join('');
+}
+
+// ── VOICE DISCOVERY ───────────────────────────────────
+var discoveredVoices = [];
+
+async function findMyVoices(){
+  var disco = document.getElementById('voiceDisco');
+  var list = document.getElementById('voiceDiscoList');
+  disco.classList.add('open');
+  list.innerHTML = '<div class="vd-loading">Loading...</div>';
+  try {
+    var resp = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': API_KEY }
+    });
+    if(!resp.ok){
+      list.innerHTML = '<div class="vd-loading">Error ' + resp.status + '. Check your API key.</div>';
+      return;
+    }
+    var data = await resp.json();
+    var all = data.voices || [];
+    discoveredVoices = all.filter(function(v){ return v.category === 'premade'; });
+    if(!discoveredVoices.length){
+      list.innerHTML = '<div class="vd-loading">No default voices found on this account.</div>';
+      return;
+    }
+    renderDiscoveredVoices();
+  } catch(e) {
+    list.innerHTML = '<div class="vd-loading">Error: ' + e.message + '</div>';
+  }
+}
+
+function renderDiscoveredVoices(){
+  var list = document.getElementById('voiceDiscoList');
+  var html = '';
+  discoveredVoices.forEach(function(v, i){
+    var labels = v.labels || {};
+    var meta = [labels.gender, labels.accent].filter(Boolean).join(', ');
+    var isSel = v.voice_id === voiceId;
+    html += '<div class="vi' + (isSel?' sel':'') + '" id="vd' + i + '">';
+    html += '<div class="vi-info">';
+    html += '<div class="vi-name">' + v.name + '</div>';
+    if(meta) html += '<div class="vi-meta">' + meta + '</div>';
+    html += '<div class="vi-id">' + v.voice_id + '</div>';
+    html += '</div>';
+    if(v.preview_url){
+      html += '<button class="vbtn vbtn-prev" onclick="previewVoice(' + i + ')">&#9654; Preview</button>';
+    }
+    html += '<button class="vbtn vbtn-use" onclick="useVoice(' + i + ')">Use</button>';
+    html += '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function previewVoice(idx){
+  if(previewAudio){ previewAudio.pause(); previewAudio = null; }
+  var v = discoveredVoices[idx];
+  if(v && v.preview_url){
+    previewAudio = new Audio(v.preview_url);
+    previewAudio.play();
+  }
+}
+
+function useVoice(idx){
+  var v = discoveredVoices[idx];
+  if(!v) return;
+  voiceId = v.voice_id;
+  try{ localStorage.setItem('mt_voice', voiceId); } catch(e){}
+  // Clear cache
+  audioCache = {};
+  document.getElementById('cachedCount').textContent = '0';
+  // Update/add dropdown option
+  var sel = document.getElementById('voiceSelect');
+  var existing = null;
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===v.voice_id){ existing=sel.options[i]; break; } }
+  if(!existing){
+    var opt = document.createElement('option');
+    opt.value = v.voice_id;
+    opt.textContent = v.name;
+    sel.insertBefore(opt, sel.firstChild);
+  }
+  sel.value = v.voice_id;
+  // Highlight in list
+  document.querySelectorAll('.vi').forEach(function(el){ el.classList.remove('sel'); });
+  var item = document.getElementById('vd' + idx);
+  if(item) item.classList.add('sel');
+  setStatus('Voice set to ' + v.name + '.');
+  setBanner('Now using: ' + v.name, 'ok');
+}
+
+function toggleDisco(){
+  var list = document.getElementById('voiceDiscoList');
+  var arrow = document.getElementById('discoArrow');
+  var isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'block' : 'none';
+  arrow.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+// ── TOUCH-SAFE PLAYLIST TAPS ──────────────────────────
+var plTouchStartX = 0;
+var plTouchStartY = 0;
+
+function plTouchStart(e){
+  plTouchStartX = e.touches[0].clientX;
+  plTouchStartY = e.touches[0].clientY;
+}
+
+function plTouchEnd(e, idx){
+  var dx = Math.abs(e.changedTouches[0].clientX - plTouchStartX);
+  var dy = Math.abs(e.changedTouches[0].clientY - plTouchStartY);
+  if(dx < 10 && dy < 10){
+    e.preventDefault();
+    jumpTo(idx);
+  }
+}
+
+function plClick(e, idx){
+  // Only handle on non-touch (desktop mouse clicks)
+  if(!e.sourceCapabilities || !e.sourceCapabilities.firesTouchEvents){
+    jumpTo(idx);
+  }
+}
+</script>
+</body>
+</html>
